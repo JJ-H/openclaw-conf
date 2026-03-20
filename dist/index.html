@@ -1,0 +1,3496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打造一只懂 Gitee 的小龙虾 🦞 - OpenClaw X Gitee Agent Skills</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+/* ===========================================
+   THEME: Cyber Lobster - Dark with Red Accents
+   =========================================== */
+:root {
+    /* Core colors - Cyber Lobster theme */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --text-primary: #ffffff;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    
+    /* Lobster accent colors */
+    --accent-red: #ff6b6b;
+    --accent-orange: #ff8c42;
+    --accent-gold: #ffd700;
+    --accent-cyan: #00d9ff;
+    
+    /* Glow effects */
+    --glow-red: rgba(255, 107, 107, 0.4);
+    --glow-cyan: rgba(0, 217, 255, 0.3);
+    
+    /* Typography */
+    --font-display: 'Clash Display', sans-serif;
+    --font-body: 'Satoshi', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    
+    /* Spacing - MUST use clamp() */
+    --slide-padding: clamp(1.5rem, 4vw, 4rem);
+    --content-gap: clamp(1rem, 2vw, 2rem);
+    --element-gap: clamp(0.5rem, 1vw, 1.5rem);
+    
+    /* Animation */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-normal: 0.6s;
+    --duration-slow: 1s;
+}
+
+/* ===========================================
+   VIEWPORT BASE STYLES (MANDATORY)
+   =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html, body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-primary);
+}
+
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+    position: relative;
+    z-index: 10;
+}
+
+/* ===========================================
+   TYPOGRAPHY WITH CLAMP()
+   =========================================== */
+.slide-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0 0 var(--element-gap) 0;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-red) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.slide-subtitle {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin: 0;
+}
+
+.slide-heading {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 600;
+    margin: 0 0 var(--content-gap) 0;
+    color: var(--text-primary);
+}
+
+.slide-text {
+    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    color: var(--text-secondary);
+    line-height: 1.8;
+    max-width: min(80vw, 800px);
+}
+
+/* ===========================================
+   ANIMATIONS
+   =========================================== */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.slide.visible .reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal:nth-child(1) { transition-delay: 0.1s; }
+.reveal:nth-child(2) { transition-delay: 0.2s; }
+.reveal:nth-child(3) { transition-delay: 0.3s; }
+.reveal:nth-child(4) { transition-delay: 0.4s; }
+.reveal:nth-child(5) { transition-delay: 0.5s; }
+.reveal:nth-child(6) { transition-delay: 0.6s; }
+
+/* Typewriter effect for terminal */
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+.typewriter {
+    overflow: hidden;
+    border-right: 2px solid var(--accent-cyan);
+    white-space: nowrap;
+    animation: typing 2s steps(40) forwards, blink 0.8s step-end infinite;
+}
+
+/* Glow pulse animation */
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px var(--glow-red); }
+    50% { box-shadow: 0 0 40px var(--glow-red), 0 0 60px var(--glow-red); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 217, 255, 0.4); }
+    50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(0, 217, 255, 0.6); }
+}
+
+/* ===========================================
+   BACKGROUND EFFECTS
+   =========================================== */
+.bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255, 107, 107, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 107, 107, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-glow-red {
+    width: 600px;
+    height: 600px;
+    background: var(--accent-red);
+    top: -200px;
+    right: -200px;
+}
+
+.bg-glow-cyan {
+    width: 400px;
+    height: 400px;
+    background: var(--accent-cyan);
+    bottom: -100px;
+    left: -100px;
+}
+
+/* ===========================================
+   SLIDE 1: TITLE
+   =========================================== */
+.title-slide {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.title-slide .slide-content {
+    text-align: center;
+}
+
+.lobster-emoji {
+    font-size: clamp(4rem, 15vw, 10rem);
+    margin-bottom: var(--content-gap);
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px var(--glow-red));
+}
+
+.hero-logo-combo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-bottom: var(--content-gap);
+}
+
+.hero-lobster {
+    width: clamp(80px, 12vw, 120px);
+    height: clamp(80px, 12vw, 120px);
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px var(--glow-red));
+    object-fit: contain;
+}
+
+.hero-x {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+.hero-gitee {
+    width: clamp(100px, 20vw, 160px);
+    height: auto;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.title-tagline {
+    font-family: var(--font-mono);
+    font-size: clamp(0.75rem, 1.5vw, 1rem);
+    color: var(--accent-cyan);
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+
+.event-info {
+    margin-top: var(--content-gap);
+    padding-top: var(--content-gap);
+    border-top: 1px solid var(--bg-tertiary);
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-muted);
+}
+
+/* ===========================================
+   SLIDE 2-3: OPENING
+   =========================================== */
+.stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 16px;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    text-align: center;
+    min-width: min(200px, 40vw);
+}
+
+.stat-number {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--accent-red);
+    display: block;
+}
+
+.stat-label {
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* ===========================================
+   SLIDE 4-6: CONCEPT
+   =========================================== */
+.concept-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--content-gap);
+    max-width: min(90vw, 1000px);
+    width: 100%;
+}
+
+.concept-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    padding: var(--content-gap);
+    position: relative;
+    overflow: hidden;
+}
+
+.concept-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));
+}
+
+.concept-icon {
+    font-size: 2rem;
+    margin-bottom: var(--element-gap);
+}
+
+.concept-title {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 600;
+    margin: 0 0 var(--element-gap) 0;
+}
+
+.concept-desc {
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ===========================================
+   SLIDE 7-8: SKILLS TABLE
+   =========================================== */
+.skills-table {
+    width: 100%;
+    max-width: min(95vw, 1100px);
+    border-collapse: collapse;
+    font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+}
+
+.skills-table th {
+    background: var(--bg-secondary);
+    padding: clamp(0.75rem, 1.5vw, 1rem);
+    text-align: left;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent-cyan);
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.skills-table td {
+    padding: clamp(0.6rem, 1.2vw, 0.875rem);
+    border-bottom: 1px solid var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.skills-table tr:hover td {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.skill-tag {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: var(--accent-red);
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 1vw, 0.8rem);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+}
+
+/* ===========================================
+   SLIDE 9-14: DEMO SECTIONS
+   =========================================== */
+.demo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: var(--content-gap);
+    width: 100%;
+    max-width: min(95vw, 1200px);
+    align-items: center;
+}
+
+.demo-content {
+    padding-right: var(--content-gap);
+}
+
+.demo-time {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
+    color: white;
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 1vw, 0.8rem);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: var(--element-gap);
+}
+
+.terminal-window {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-header {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f56; }
+.terminal-dot.yellow { background: #ffbd2e; }
+.terminal-dot.green { background: #27c93f; }
+
+.terminal-title {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.terminal-body {
+    padding: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+    line-height: 1.6;
+}
+
+.terminal-line {
+    margin: 0.5rem 0;
+}
+
+.terminal-prompt {
+    color: var(--accent-cyan);
+}
+
+.terminal-input {
+    color: var(--text-primary);
+}
+
+.terminal-output {
+    color: var(--text-secondary);
+    margin-left: 1.5rem;
+}
+
+.terminal-success {
+    color: #27c93f;
+}
+
+.terminal-comment {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ===========================================
+   SLIDE 15-17: FEATURES GRID
+   =========================================== */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--content-gap);
+    width: 100%;
+    max-width: min(95vw, 1100px);
+}
+
+.feature-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 12px;
+    padding: var(--content-gap);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(255, 107, 107, 0.1);
+}
+
+.feature-emoji {
+    font-size: 2.5rem;
+    margin-bottom: var(--element-gap);
+}
+
+.client-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--element-gap);
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover .client-icon {
+    transform: scale(1.1);
+}
+
+.feature-title {
+    font-family: var(--font-display);
+    font-size: clamp(0.875rem, 1.5vw, 1.1rem);
+    font-weight: 600;
+    margin: 0 0 var(--element-gap) 0;
+}
+
+.feature-desc {
+    font-size: clamp(0.7rem, 1vw, 0.8rem);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ===========================================
+   SLIDE 18-19: COMPARISON
+   =========================================== */
+.compare-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--content-gap);
+    align-items: center;
+    width: 100%;
+    max-width: min(95vw, 1000px);
+}
+
+.compare-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 16px;
+    padding: var(--content-gap);
+    text-align: center;
+}
+
+.compare-box.old {
+    border-color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.compare-box.new {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 30px var(--glow-red);
+}
+
+.compare-arrow {
+    font-size: 2rem;
+    color: var(--accent-cyan);
+}
+
+/* ===========================================
+   SLIDE 20-21: CLOSING
+   =========================================== */
+.closing-cta {
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
+    color: white;
+    padding: clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 4rem);
+    border-radius: 50px;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: var(--content-gap);
+    box-shadow: 0 10px 40px var(--glow-red);
+    transition: transform 0.3s ease;
+}
+
+.closing-cta:hover {
+    transform: scale(1.05);
+}
+
+.qr-placeholder {
+    width: min(150px, 30vw);
+    height: min(150px, 30vw);
+    background: white;
+    border-radius: 12px;
+    margin-top: var(--content-gap);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg-primary);
+    font-size: 0.75rem;
+}
+
+/* ===========================================
+   NAVIGATION
+   =========================================== */
+.nav-dots {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-dot:hover {
+    background: var(--accent-red);
+}
+
+.nav-dot.active {
+    background: var(--accent-red);
+    box-shadow: 0 0 10px var(--glow-red);
+    transform: scale(1.3);
+}
+
+.progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));
+    z-index: 1000;
+    transition: width 0.3s ease;
+}
+
+.slide-number {
+    position: absolute;
+    top: var(--slide-padding);
+    left: var(--slide-padding);
+    font-family: var(--font-mono);
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+    color: var(--text-muted);
+    z-index: 100;
+}
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+@media (max-width: 900px) {
+    .concept-grid,
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .slide-content > .reveal[style*="grid-template-columns: repeat(3"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .demo-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .demo-content {
+        padding-right: 0;
+        text-align: center;
+    }
+    
+    .compare-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .compare-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+@media (max-width: 600px) {
+    .concept-grid,
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .slide-content > .reveal[style*="grid-template-columns: repeat(3"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .nav-dots {
+        display: none;
+    }
+}
+
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(1rem, 3vw, 2rem);
+        --content-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* ===========================================
+   UTILITY CLASSES
+   =========================================== */
+.text-center { text-align: center; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.mb-1 { margin-bottom: var(--element-gap); }
+.mb-2 { margin-bottom: var(--content-gap); }
+.highlight { color: var(--accent-red); }
+.highlight-cyan { color: var(--accent-cyan); }
+
+/* ===========================================
+   INLINE EDITING
+   =========================================== */
+.edit-hotzone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    z-index: 10000;
+    cursor: pointer;
+}
+
+.edit-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px var(--glow-red);
+}
+
+.edit-toggle.show,
+.edit-toggle.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.edit-toggle:hover {
+    transform: scale(1.1);
+}
+
+.edit-toggle.active {
+    background: var(--accent-cyan);
+    box-shadow: 0 4px 12px var(--glow-cyan);
+}
+
+[contenteditable="true"] {
+    outline: 2px dashed var(--accent-cyan);
+    outline-offset: 4px;
+    cursor: text;
+}
+
+[contenteditable="true"]:hover {
+    background: rgba(0, 217, 255, 0.05);
+}
+
+.save-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10001;
+}
+
+.save-indicator.show {
+    opacity: 1;
+}
+
+.mcp-tag {
+    background: rgba(0, 217, 255, 0.15);
+    color: var(--accent-cyan);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    font-family: var(--font-mono);
+    border: 1px solid rgba(0, 217, 255, 0.3);
+    white-space: nowrap;
+}
+
+.skill-tag {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--accent-red);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    font-family: var(--font-mono);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    white-space: nowrap;
+}
+
+.more-tag {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    padding: 0.35rem 0.6rem;
+    border-radius: 20px;
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    font-weight: 600;
+}
+
+.more-tag-red {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    padding: 0.35rem 0.6rem;
+    border-radius: 20px;
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    font-weight: 600;
+}
+
+.slide a {
+    color: var(--accent-cyan);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.slide a:hover {
+    border-bottom-color: var(--accent-cyan);
+}
+
+.terminal-body a {
+    color: var(--accent-cyan);
+    text-decoration: none;
+}
+
+.terminal-body a:hover {
+    text-decoration: underline;
+}
+
+/* Image Lightbox Styles */
+.img-preview-container {
+    position: relative;
+    cursor: zoom-in;
+    transition: transform 0.2s ease;
+}
+
+.img-preview-container:hover {
+    transform: scale(1.02);
+}
+
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    cursor: zoom-out;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.lightbox-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-overlay img {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.lightbox-close:hover {
+    opacity: 1;
+}
+
+/* Install Option Tabs */
+.install-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    background: var(--bg-tertiary);
+    padding: 0.5rem;
+    border-radius: 12px;
+}
+
+.install-tab {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.install-tab.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.install-tab:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
+.install-content {
+    display: none;
+    height: 160px;
+    position: relative;
+    overflow-y: auto;
+}
+
+.install-content.active {
+    display: block;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    z-index: 10;
+}
+
+.copy-btn:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    border-color: var(--accent-cyan);
+}
+
+.copy-btn.copied {
+    background: #27c93f;
+    color: white;
+    border-color: #27c93f;
+}
+
+.terminal-body {
+    position: relative;
+}
+
+/* Skills Section */
+.skills-section {
+    margin-top: var(--content-gap);
+    text-align: center;
+}
+
+.section-label {
+    font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+    color: var(--text-secondary);
+    margin-bottom: var(--element-gap);
+    text-align: left;
+    max-width: min(95vw, 800px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: var(--element-gap);
+    text-align: left;
+    max-width: min(95vw, 800px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.skill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: clamp(0.7rem, 1vw, 0.8rem);
+}
+
+.skill-emoji {
+    font-size: 1.1em;
+}
+
+.skill-text {
+    color: var(--text-secondary);
+}
+
+.skill-text strong {
+    color: var(--text-primary);
+}
+
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: var(--element-gap);
+}
+
+.tag {
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.tag:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border-color: var(--accent-primary);
+}
+
+</style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Slides Container - will be populated dynamically -->
+    <div id="slidesContainer">
+<section class="slide title-slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">01 / 25</div>
+        <div class="bg-glow bg-glow-red"></div>
+        <div class="bg-glow bg-glow-cyan"></div>
+        <div class="slide-content">
+            <div class="hero-logo-combo reveal" style="gap: clamp(0.8rem, 2vw, 1.5rem);">
+                <img src="assets/icon-openclaw.svg" alt="OpenClaw" style="width: clamp(70px, 12vw, 100px); height: auto; filter: drop-shadow(0 0 20px rgba(255, 77, 77, 0.5)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <span style="font-size: clamp(1.2rem, 3vw, 2rem); color: var(--text-muted); font-family: var(--font-display); font-weight: 700;">×</span>
+                <img src="assets/icon-gitee.svg" alt="Gitee" style="width: clamp(90px, 16vw, 140px); height: auto; filter: drop-shadow(0 0 20px rgba(199, 11, 11, 0.5)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <span style="font-size: clamp(1.2rem, 3vw, 2rem); color: var(--text-muted); font-family: var(--font-display); font-weight: 700;">×</span>
+                <img src="assets/icon-moark.svg" alt="Moark" style="width: clamp(100px, 18vw, 160px); height: auto; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            </div>
+            <div class="title-tagline reveal">OPENCLAW X GITEE AGENT SKILLS</div>
+            <h1 class="slide-title reveal">打造一只懂 Gitee 的小龙虾</h1>
+            <p class="slide-subtitle reveal">让 AI 成为你的 Gitee 开发助手</p>
+            <div class="event-info reveal">
+                <div>Conference Talk · 30 minutes</div>
+                <div style="margin-top: 0.5rem;">开源中国 · Gitee</div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">02 / 25</div>
+        <div class="slide-content">
+            <div class="reveal" style="text-align: center;">
+                <div style="
+                    width: clamp(120px, 20vw, 180px);
+                    height: clamp(120px, 20vw, 180px);
+                    border-radius: 50%;
+                    overflow: hidden;
+                    margin: 0 auto var(--content-gap);
+                    border: 3px solid var(--accent-red);
+                    box-shadow: 0 0 30px var(--glow-red);
+                ">
+                    <img src="assets/avatar.jpg" alt="黄家建" style="
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    ">
+                </div>
+                
+                <h2 style="
+                    font-family: var(--font-display);
+                    font-size: clamp(1.5rem, 4vw, 2.5rem);
+                    font-weight: 600;
+                    margin: 0 0 var(--element-gap) 0;
+                    color: var(--text-primary);
+                ">黄家建</h2>
+                
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: clamp(1rem, 2vw, 1.25rem);
+                    color: var(--text-secondary);
+                    margin: 0 0 var(--element-gap) 0;
+                ">
+                    <img src="assets/logo_gitee.svg" alt="Gitee" style="width: 24px; height: 24px; vertical-align: middle;">
+                    <span>Gitee AI 应用研发工程师</span>
+                </div>
+                
+                <p style="
+                    font-size: clamp(0.875rem, 1.5vw, 1rem);
+                    color: var(--text-muted);
+                    margin: 0 0 var(--content-gap) 0;
+                ">开源中国</p>
+                
+                <div style="
+                    max-width: min(80vw, 500px);
+                    margin: 0 auto;
+                    padding: var(--content-gap);
+                    background: var(--bg-secondary);
+                    border-radius: 12px;
+                    border-left: 3px solid var(--accent-red);
+                ">
+                    <p style="
+                        font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+                        color: var(--text-secondary);
+                        margin: 0;
+                        font-style: italic;
+                        line-height: 1.6;
+                    ">
+                        "让 AI 不止于聊天，<br>
+                        而是能真正帮开发者干活"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">03 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">快速引入</h2>
+            <p class="slide-text reveal mb-2">
+                开发者圈最近最火的词：<span class="highlight">养虾</span> 🦞
+            </p>
+            
+            <div class="reveal" style="margin-top: var(--content-gap);">
+                <p class="slide-text">
+                    OpenClaw = <span class="highlight-cyan">AI Agent 框架</span><br>
+                    让 AI 从"会聊天"进化到"<span class="highlight">会干活</span>"
+                </p>
+            </div>
+            
+            <p class="slide-text reveal" style="margin-top: var(--content-gap); color: var(--text-muted);">
+                <em>（前面嘉宾已介绍 OpenClaw 安装和 HiClaw 搭建，这里聚焦 Gitee 实战能力）</em>
+            </p>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">04 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">什么是 Skills？</h2>
+            <p class="slide-text reveal mb-2">
+                给 AI Agent 装上<span class="highlight">"手艺"</span>，让它从"会聊天"进化到"会干活"
+            </p>
+            
+            <div class="reveal" style="
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--content-gap);
+                max-width: min(95vw, 1200px);
+                width: 100%;
+                margin-bottom: var(--content-gap);
+            ">
+                <!-- Card 1: Skill 是什么？ -->
+                <div class="concept-card" style="text-align: left;">
+                    <div class="concept-icon">📋</div>
+                    <h3 class="concept-title">Skill 是什么？</h3>
+                    <p class="concept-desc">
+                        AI Agent 的能力扩展协议，定义了 Agent 如何理解和执行特定任务。<br><br>
+                        通过标准化的 Skill 定义，让 AI 能够：
+                    </p>
+                    <ul style="margin: 0.5rem 0 0 0; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary);">
+                        <li>理解复杂任务意图</li>
+                        <li>编排多步骤工作流</li>
+                        <li>调用外部工具执行</li>
+                        <li>在多客户端复用</li>
+                    </ul>
+                </div>
+                
+                <!-- Card 2: 解决了什么问题？ -->
+                <div class="concept-card" style="text-align: left; border-color: var(--accent-red);">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));"></div>
+                    <div class="concept-icon">🎯</div>
+                    <h3 class="concept-title" style="color: var(--accent-red);">解决了什么问题？</h3>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.7;">
+                        <div style="margin-bottom: 0.8rem;">
+                            <strong style="color: var(--accent-red);">💸 上下文膨胀</strong>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.72rem;">MCP 需注入整个 API 定义，Token 消耗巨大</p>
+                        </div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <strong style="color: var(--accent-red);">🔄 数据搬运低效</strong>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.72rem;">模型被迫当"路由器"，中间结果重复耗 Token</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--accent-red);">🧩 工具流程割裂</strong>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.72rem;">MCP 只定义"手怎么动"，没定义"脑怎么想"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card 3: 技术协议 -->
+                <div class="concept-card" style="text-align: left;">
+                    <div class="concept-icon">🔌</div>
+                    <h3 class="concept-title">技术协议</h3>
+                    <p class="concept-desc">
+                        Skills 采用开放协议，可在任何支持 Agent Skills 的应用中使用：
+                    </p>
+                    <div style="margin-top: 0.5rem; font-size: 0.78rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span style="color: var(--accent-cyan);">✓</span>
+                            <span>OpenClaw / Claude Code</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span style="color: var(--accent-cyan);">✓</span>
+                            <span>Cursor / Gemini CLI</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+                            <span style="color: var(--accent-cyan);">✓</span>
+                            <span>OpenAI Codex / Goose</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: var(--accent-cyan);">✓</span>
+                            <span>更多客户端持续接入...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="
+                max-width: min(90vw, 800px);
+                margin: 0 auto;
+                padding: var(--content-gap);
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                border-left: 3px solid var(--accent-gold);
+            ">
+                <p style="font-size: clamp(0.9rem, 1.6vw, 1.05rem); color: var(--text-secondary); margin: 0; line-height: 1.7;">
+                    <strong style="color: var(--text-primary);">核心价值：</strong>
+                    Skills 将<span style="color: var(--accent-cyan);">工具调用</span>、<span style="color: var(--accent-cyan);">任务编排</span>、<span style="color: var(--accent-cyan);">领域知识</span>封装为可复用的能力模块，
+                    让开发者通过自然语言即可驱动 AI 完成复杂工作流。
+                </p>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">05 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">MCP vs Agent Skills</h2>
+            <p class="slide-text reveal mb-2">工具层 <span style="color: var(--text-muted);">→</span> 编排层</p>
+            
+            <div class="reveal" style="
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                gap: clamp(1rem, 3vw, 2rem);
+                max-width: min(95vw, 1000px);
+                margin: 0 auto var(--content-gap);
+                align-items: stretch;
+            ">
+                <!-- MCP Server Side -->
+                <div style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--accent-cyan);
+                    border-radius: 16px;
+                    padding: var(--content-gap);
+                    display: flex;
+                    flex-direction: column;
+                ">
+                    <div style="text-align: center; margin-bottom: var(--element-gap);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔧</div>
+                        <h3 style="margin: 0; color: var(--accent-cyan); font-size: clamp(1rem, 2vw, 1.25rem);">Gitee MCP Server</h3>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: var(--text-muted);">工具层 · ...</p>
+                    </div>
+                    
+                    <div style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.5rem;
+                        justify-content: center;
+                        align-content: flex-start;
+                        flex: 1;
+                    ">
+                        <span class="mcp-tag">create_pull</span>
+                        <span class="mcp-tag">get_diff_files</span>
+                        <span class="mcp-tag">create_issue</span>
+                        <span class="mcp-tag">merge_pull</span>
+                        <span class="mcp-tag">list_repo_issues</span>
+                        <span class="mcp-tag">comment_pull</span>
+                        <span class="mcp-tag">get_file_content</span>
+                        <span class="mcp-tag">create_release</span>
+                        <span class="mcp-tag more-tag">...</span>
+                    </div>
+                </div>
+                
+                <!-- Arrow -->
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2rem;
+                    color: var(--text-muted);
+                    padding: 0.5rem 0;
+                ">→</div>
+                
+                <!-- Agent Skills Side -->
+                <div style="
+                    background: var(--bg-secondary);
+                    border: 2px solid var(--accent-red);
+                    border-radius: 16px;
+                    padding: var(--content-gap);
+                    box-shadow: 0 0 30px var(--glow-red);
+                    display: flex;
+                    flex-direction: column;
+                ">
+                    <div style="text-align: center; margin-bottom: var(--element-gap);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                        <h3 style="margin: 0; color: var(--accent-red); font-size: clamp(1rem, 2vw, 1.25rem);">Gitee Agent Skills</h3>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: var(--text-muted);">编排层 · ...</p>
+                    </div>
+                    
+                    <div style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.5rem;
+                        justify-content: center;
+                        align-content: flex-start;
+                        flex: 1;
+                    ">
+                        <span class="skill-tag">review-pr</span>
+                        <span class="skill-tag">create-pr</span>
+                        <span class="skill-tag">implement-issue</span>
+                        <span class="skill-tag">daily-digest</span>
+                        <span class="skill-tag">merge-pr-check</span>
+                        <span class="skill-tag">triage-issues</span>
+                        <span class="skill-tag">create-release</span>
+                        <span class="skill-tag">repo-explorer</span>
+                        <span class="skill-tag more-tag-red">...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="
+                max-width: min(90vw, 700px);
+                margin: 0 auto;
+                padding: var(--content-gap);
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                border: 1px solid var(--bg-tertiary);
+            ">
+                <p style="font-size: clamp(0.85rem, 1.5vw, 1rem); color: var(--text-secondary); margin: 0 0 var(--element-gap) 0;">
+                    <strong style="color: var(--text-primary);">类比理解：</strong>
+                </p>
+                <p style="font-size: clamp(0.8rem, 1.4vw, 0.95rem); color: var(--text-muted); margin: 0; line-height: 1.8;">
+                    • MCP = <span style="color: var(--accent-cyan);">厨房的工具</span>（刀、锅、铲）<br>
+                    • Skills = <span style="color: var(--accent-red);">菜谱</span>（宫保鸡丁=切+炒+调味）<br>
+                    • OpenClaw = <span style="color: var(--accent-gold);">厨师</span>（按菜谱用工具完成烹饪）
+                </p>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">06 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">Gitee Agent Skills</h2>
+            <p class="slide-text reveal mb-2">
+                基于 <span class="highlight-cyan">Gitee MCP Server</span> 的预置 Skill 集合<br>
+                覆盖开发者最常见的 Gitee 工作流
+            </p>
+            
+            <table class="skills-table reveal">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Skill</th>
+                        <th style="width: 45%;">功能描述</th>
+                        <th style="width: 30%;">适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="skill-tag">review-pr</span></td>
+                        <td>获取 PR 差异、分析代码，自动发布 Review 评论</td>
+                        <td>代码审查</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">create-pr</span></td>
+                        <td>自动生成规范 PR 标题与描述，提交拉取请求</td>
+                        <td>提交代码</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">implement-issue</span></td>
+                        <td>Issue → 需求分析 → 辅助编码 → 创建 PR → 关闭 Issue</td>
+                        <td>需求开发</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">daily-digest</span></td>
+                        <td>汇总未读通知、待处理 PR/Issue，生成每日摘要</td>
+                        <td>晨会汇报</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">07 / 25</div>
+        <div class="slide-content">
+            
+            <table class="skills-table reveal">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Skill</th>
+                        <th style="width: 45%;">功能描述</th>
+                        <th style="width: 30%;">适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="skill-tag">merge-pr-check</span></td>
+                        <td>检查 PR 是否具备合并条件，确认后执行合并</td>
+                        <td>代码合并</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">create-issue</span></td>
+                        <td>与用户确认需求后，创建结构规范的 Issue</td>
+                        <td>需求录入</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">triage-issues</span></td>
+                        <td>批量整理开放 Issue，按优先级、类型分类</td>
+                        <td>项目管理</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">close-issue-flow</span></td>
+                        <td>确认修复已合并后，规范关闭 Issue</td>
+                        <td>Issue 清理</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">create-release</span></td>
+                        <td>从合并的 PR 历史生成 Changelog 并发布版本</td>
+                        <td>版本发布</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">repo-explorer</span></td>
+                        <td>快速了解任意 Gitee 仓库的结构与核心内容</td>
+                        <td>接手项目</td>
+                    </tr>
+                    <tr>
+                        <td><span class="skill-tag">search-and-fork</span></td>
+                        <td>在 Gitee 上搜索开源项目并 Fork 最合适仓库</td>
+                        <td>项目调研</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p class="slide-text reveal" style="margin-top: var(--content-gap);">
+                覆盖完整开发工作流 ...
+            </p>
+        </div>
+    </section>
+<section class="slide title-slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">08 / 25</div>
+        <div class="bg-glow bg-glow-red"></div>
+        <div class="slide-content">
+            <div class="reveal" style="margin-bottom: var(--element-gap);">
+                <img src="assets/openclaw_x_gitee.png" alt="Gitee 小龙虾" style="width: clamp(150px, 25vw, 280px); height: auto; filter: drop-shadow(0 10px 30px rgba(199, 11, 11, 0.4));">
+            </div>
+            <h2 class="slide-title reveal">Gitee 小龙虾配置与实战</h2>
+            <p class="slide-subtitle reveal">实战演示：从配置到全自动开发</p>
+            <div class="event-info reveal">
+                <div>4 个典型场景 · 12 分钟演示</div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">09 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">⏱️ 步骤 1/2</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">配置 Gitee MCP Server</h2>
+                    <p class="slide-text">
+                        选择适合你的配置方式
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.85rem; color: var(--text-muted);">
+                        <span class="highlight">推荐：让 AI Agent 自动配置</span>
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
+                        <span style="color: var(--accent-cyan);">💡 前置要求：</span>mcporter skill
+                    </p>
+                    
+                    <!-- mcporter 下载指令 -->
+                    <div class="terminal-window" style="margin-top: var(--element-gap); max-width: 380px;">
+                        <div class="install-tabs" style="padding: 0.3rem;">
+                            <button class="install-tab active" onclick="showTab('mcporter-npm', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                npm
+                            </button>
+                            <button class="install-tab" onclick="showTab('mcporter-pnpm', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                pnpm
+                            </button>
+                            <button class="install-tab" onclick="showTab('mcporter-bun', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                bun
+                            </button>
+                        </div>
+                        
+                        <div id="mcporter-npm" class="install-content active" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-npm-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-npm-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">npx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="mcporter-pnpm" class="install-content" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-pnpm-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-pnpm-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">pnpm dlx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="mcporter-bun" class="install-content" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-bun-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-bun-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">bunx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-window reveal">
+                    <div class="install-tabs">
+                        <button class="install-tab active" onclick="showTab('mcp-agent', this)">
+                            <span>🤖</span> I'm An Agent
+                        </button>
+                        <button class="install-tab" onclick="showTab('mcp-human', this)">
+                            <span>👤</span> I'm a Human
+                        </button>
+                    </div>
+                    
+                    <div id="mcp-agent" class="install-content active">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem);">
+                            <button class="copy-btn" onclick="copyToClipboard('mcp-agent-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="mcp-agent-text">
+                                <div class="terminal-line">
+                                    <span class="terminal-input">帮我配置 Gitee MCP Server，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">采用 remote 方式连接，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">Access Token 为：xxxxx，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">文档说明：https://gitee.com/oschina/mcp-gitee</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mcp-human" class="install-content">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem);">
+                            <button class="copy-btn" onclick="copyToClipboard('mcp-human-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="mcp-human-text">
+                                <div class="terminal-line" style="margin-top: 0.5rem;">
+                                    <span class="terminal-comment"># OpenClaw 推荐使用 mcporter 调用 mcp</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">mcporter config add gitee --url https://api.gitee.com/mcp --header Authorization="Bearer &lt;your personal access token&gt;"</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 800px;
+                    width: 90%;
+                " onclick="openLightbox('assets/config-gitee-mcp.png')">
+                    <img src="assets/config-gitee-mcp.png" alt="Gitee MCP 配置成功" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">10 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">⏱️ 步骤 2/2</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">安装 Gitee Agent Skills</h2>
+                    <p class="slide-text">
+                        选择适合你的安装方式
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.85rem; color: var(--text-muted);">
+                        <span class="highlight-cyan">推荐：让 AI Agent 自动安装</span>
+                    </p>
+                </div>
+
+                <div class="terminal-window reveal">
+                    <div class="install-tabs">
+                        <button class="install-tab active" onclick="showTab('skill-agent', this)">
+                            <span>🤖</span> I'm An Agent
+                        </button>
+                        <button class="install-tab" onclick="showTab('skill-human', this)">
+                            <span>👤</span> I'm a Human
+                        </button>
+                    </div>
+                    
+                    <div id="skill-agent" class="install-content active">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem); position: relative;">
+                            <button class="copy-btn" onclick="copyToClipboard('skill-agent-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="skill-agent-text">
+                                <div class="terminal-line">
+                                    <span class="terminal-input">帮我安装 Gitee Agent Skills，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">仓库地址是 https://gitee.com/oschina/gitee-agent-skills，找到 OpenClaw 相关安装指引并安装</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="skill-human" class="install-content">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem); position: relative;">
+                            <button class="copy-btn" onclick="copyToClipboard('skill-human-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="skill-human-text">
+                                <div class="terminal-line">
+                                    <span class="terminal-comment"># 1. 克隆 Gitee Agent Skills 仓库</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">git clone https://gitee.com/oschina/gitee-agent-skills</span>
+                                </div>
+                                <div class="terminal-line" style="margin-top: 0.5rem;">
+                                    <span class="terminal-comment"># 2. 创建 Skills 目录（如果不存在）</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">mkdir -p ~/.openclaw/skills</span>
+                                </div>
+                                <div class="terminal-line" style="margin-top: 0.5rem;">
+                                    <span class="terminal-comment"># 3. 复制到 OpenClaw Skills 目录</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">cp -r gitee-agent-skills/skills/* ~/.openclaw/skills/</span>
+                                </div>
+                                <div class="terminal-line" style="margin-top: 0.5rem;">
+                                    <span class="terminal-comment"># 4. 重启 OpenClaw 生效</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">openclaw gateway restart</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            
+
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">11 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">✅ 步骤 3/3</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">验证 Skills 安装</h2>
+                    <p class="slide-text">
+                        安装完成后，确认 Skills 是否正常加载
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.85rem; color: var(--text-muted);">
+                        <span class="highlight">询问 AI：</span>"你有哪些 gitee 的 skills"
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.8rem; color: var(--text-secondary);">
+                        ✓ 如果正常识别，会列出所有 Gitee Skills
+                    </p>
+                </div>
+
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">verification</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"你有哪些 gitee 的 skills"</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-comment"># AI 回复示例：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">Gitee 相关的 Skills（需 Gitee MCP Server 配置）：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• daily-digest - 每日摘要、待办 PR/Issue</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• create-issue - 创建 Issue、提 Bug、需求</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• close-issue-flow - 关闭 Issue</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• create-pr - 创建 Pull Request</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• review-pr - 审查 PR</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-success">......</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 600px;
+                    width: 90%;
+                " onclick="openLightbox('assets/check-skills.png')">
+                    <img src="assets/check-skills.png" alt="Gitee Skills 验证结果" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">12 / 25</div>
+        <div class="slide-content">
+            <div class="reveal" style="text-align: center; margin-bottom: var(--element-gap);">
+                <span class="role-badge" style="background: linear-gradient(135deg, #ff6b6b, #ff8c42); color: white; padding: 0.5rem 1.5rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>👨‍💻</span> 工程师视角
+                </span>
+            </div>
+            
+            <h2 class="slide-heading reveal" style="font-size: clamp(1.5rem, 4vw, 2.5rem); text-align: center; margin-bottom: var(--content-gap);">
+                每日工作流：让小龙虾成为你的<span class="highlight-cyan">智能助手</span>
+            </h2>
+            
+            <div class="workflow-grid reveal" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 900px; width: 100%;">
+                <div class="workflow-card" style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #00d9ff, #00a8cc); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">📋</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0;">每日待办</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Daily Digest</p>
+                        </div>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.8rem; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input">/daily-digest</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem; color: var(--text-muted);">
+                            → 3个PR待审查 · 2个Issue待处理
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-card" style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ff6b6b, #ff4757); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🔍</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0;">PR审查</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Code Review</p>
+                        </div>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.8rem; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input">/review-pr #123</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem; color: var(--text-muted);">
+                            → AI自动分析变更 · 发现潜在问题
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-card" style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ffd700, #ffaa00); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚡</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0;">Issue实现</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Implementation</p>
+                        </div>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.8rem; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input">/implement-issue #456</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem; color: var(--text-muted);">
+                            → 智能分析需求 · 自动生成代码
+                        </div>
+                    </div>
+                </div>
+
+                <div class="workflow-card" style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #a855f7, #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🚀</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0;">版本发布</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Release</p>
+                        </div>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.8rem; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input">/create-release v2.0.0</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem; color: var(--text-muted);">
+                            → 自动生成Changelog · 一键发布
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">13 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">🌅 9:00 场景 1: 每日晨报</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">今天有什么待处理的？</h2>
+                    <p class="slide-text">
+                        只需一句话，小龙虾帮你汇总：<br><br>
+                        • 未读通知<br>
+                        • 待 Review 的 PR<br>
+                        • 待处理的 Issue<br>
+                        • 今日工作优先级
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        <span class="highlight">关键词：私人 AI 助理</span>
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        还可以设置定时触发，比如：<br>
+                        <span style="color: var(--accent-cyan);">每个工作日的早上 10:00 推送每日待办</span>
+                    </p>
+                </div>
+                
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">daily-digest</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"今天有什么需要处理的 PR？"</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 小龙虾自动执行 daily-digest...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📊 今日工作摘要</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 3 个 PR 待 Review</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 5 条未读通知</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 2 个 Issue 待处理</span>
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            ✓ 已生成完整日报
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 600px;
+                    width: 90%;
+                " onclick="openLightbox('assets/daily-digest-cron.png')">
+                    <img src="assets/daily-digest-cron.png" alt="定时推送每日待办" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">14 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">🕚 11:00 场景 2: 自动 Review</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">帮我 review 这个 PR</h2>
+                    <p class="slide-text">
+                        一句话触发 review-pr Skill：<br><br>
+                        1. 获取 PR diff<br>
+                        2. 分析代码逻辑<br>
+                        3. 找潜在 Bug<br>
+                        4. 给出优化建议<br>
+                        5. 自动发布 Review 评论
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        <span class="highlight">关键词：无情 Review 机器</span>
+                    </p>
+                </div>
+                
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">review-pr</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"帮我 review ccolt/spark-show的 PR #42"</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 小龙虾自动执行...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">🔍 分析 PR #42 diff...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">⚠️ 发现 2 个潜在问题</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">💡 给出 3 条优化建议</span>
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            ✓ Review 评论已发布到 PR
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">15 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">🕒 15:00 场景 3: 从 Issue 到 PR</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">帮我实现这个 Issue</h2>
+                    <p class="slide-text">
+                        implement-issue Skill 完整闭环：<br><br>
+                        1. 阅读 Issue 内容<br>
+                        2. 分析需求<br>
+                        3. 理解仓库代码<br>
+                        4. 编写实现代码<br>
+                        5. 创建 PR 并关联 Issue
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        <span class="highlight">关键词：专属开发团队</span>
+                    </p>
+                </div>
+                
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">implement-issue</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"帮我实现 ccolt/spark-show的 Issue #15"</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 小龙虾自动执行...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📖 阅读 Issue #15...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">🔍 分析仓库结构...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">💻 编写代码实现...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📝 创建 PR #47 关联 Issue</span>
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            ✓ Issue → PR 闭环完成
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">16 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">🕔 17:00 场景 4: 一键发版</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">发布新版本</h2>
+                    <p class="slide-text">
+                        create-release Skill 自动完成：<br><br>
+                        1. 收集 PR 合并历史<br>
+                        2. 智能生成 Changelog<br>
+                        3. 发布 Git 标签<br>
+                        4. 创建 Release 页面
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        <span class="highlight">关键词：一键发版工具人</span>
+                    </p>
+                </div>
+                
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">create-release</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"给 ccolt/spark-show发布 v1.0.0"</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 小龙虾自动执行...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📋 收集 PR 历史...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📝 生成 Changelog...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">🏷️ 创建标签 v1.0.0...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">🚀 发布 Release</span>
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            ✓ v1.0.0 发布成功！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">17 / 25</div>
+        <div class="slide-content">
+            <div class="reveal" style="text-align: center; margin-bottom: var(--element-gap);">
+                <span class="role-badge" style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; padding: 0.5rem 1.5rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>🎓</span> 开源小白视角
+                </span>
+            </div>
+            
+            <h2 class="slide-heading reveal" style="font-size: clamp(1.5rem, 4vw, 2.5rem); text-align: center; margin-bottom: var(--content-gap);">
+                发现优质项目：小龙虾帮你<span class="highlight-cyan">精准定位</span>
+            </h2>
+            
+            <div class="discovery-layout reveal" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; max-width: 1100px; width: 100%; align-items: start;">
+                <div class="terminal-window" style="transform: translateY(0);">
+                    <div class="terminal-header">
+                        <div class="terminal-dot dot-red"></div>
+                        <div class="terminal-dot dot-yellow"></div>
+                        <div class="terminal-dot dot-green"></div>
+                        <span style="margin-left: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">🔍 搜索 Gitee 热门项目</span>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.85rem;">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 推荐 Java 缓存仓库</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-input">帮我推荐几个优质的 Java 缓存框架项目</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 1rem;">
+                            <span style="color: var(--accent-cyan);">🦞 小龙虾发现 3 个优质项目：</span>
+                        </div>
+                        
+                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem; border-left: 3px solid var(--accent-red);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-weight: 600; color: var(--accent-cyan);">J2Cache</span>
+                                <span style="font-size: 0.75rem; color: var(--accent-gold);">⭐ 5,170</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                                Java 两级缓存框架，支持 ehcache/Caffeine + Redis
+                            </div>
+                            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                                <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.1); color: var(--accent-cyan); border-radius: 1rem;">Java</span>
+                                <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.1); color: var(--accent-cyan); border-radius: 1rem;">Redis</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem; border-left: 3px solid var(--accent-orange);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-weight: 600; color: var(--accent-cyan);">AutoLoadCache</span>
+                                <span style="font-size: 0.75rem; color: var(--accent-gold);">⭐ 835</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                                基于 AOP+Annotation 的高并发缓存管理解决方案
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem; border-left: 3px solid var(--accent-gold);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-weight: 600; color: var(--accent-cyan);">JetCache</span>
+                                <span style="font-size: 0.75rem; color: var(--accent-gold);">⭐ 131</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                                Alibaba 出品的 Java 缓存框架，支持声明式方法缓存和两级缓存
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="feature-list" style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary);">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: var(--accent-cyan);">🎯</span> 智能筛选维度
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <span style="font-size: 1.2rem;">⭐</span>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 500;">Star 数量</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">stars:>1000</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <span style="font-size: 1.2rem;">💻</span>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 500;">编程语言</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">language:Java</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <span style="font-size: 1.2rem;">🔄</span>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 500;">最近更新</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">pushed:>2024-01-01</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <span style="font-size: 1.2rem;">📋</span>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 500;">关键词匹配</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">cache / redis / caffeine</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(0,217,255,0.1)); border-radius: 1rem; padding: 1rem; border: 1px solid rgba(255,107,107,0.3);">
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+                            <span style="color: var(--accent-cyan);">💡</span> 
+                            提示：使用自然语言描述你的需求，小龙虾会自动解析并搜索
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">18 / 25</div>
+        <div class="slide-content">
+            <div class="reveal" style="text-align: center; margin-bottom: var(--element-gap);">
+                <span class="role-badge" style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; padding: 0.5rem 1.5rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>🎓</span> 开源小白视角
+                </span>
+            </div>
+            
+            <h2 class="slide-heading reveal" style="font-size: clamp(1.5rem, 4vw, 2.5rem); text-align: center; margin-bottom: var(--content-gap);">
+                深度探索：Gitee 小龙虾带你<span class="highlight-cyan">读懂代码库</span>
+            </h2>
+            
+            <div class="explore-layout reveal" style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; max-width: 1100px; width: 100%; align-items: start;">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary);">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #ff6b6b, #ff8c42); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <img src="assets/j2cache.png" alt="J2Cache" style="width: 40px; height: 40px; object-fit: contain;">
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.2rem; font-weight: 600; margin: 0;">J2Cache</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">Java 两级缓存框架</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+                            <div style="text-align: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-gold);">5,170</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Stars</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-cyan);">1,776</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Forks</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-red);">Java</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Maven</div>
+                            </div>
+                        </div>
+                        
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">
+                            Java 两级缓存框架，支持 ehcache/Caffeine + Redis，避免完全使用独立缓存系统带来的网络IO开销
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--bg-tertiary);">
+                        <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: var(--accent-cyan);">📊</span> 项目活跃度
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                                <span style="color: var(--text-muted);">最近提交</span>
+                                <span style="color: var(--accent-cyan);">2024-12-20</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                                <span style="color: var(--text-muted);">开放 Issues</span>
+                                <span style="color: var(--accent-gold);">117 个</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                                <span style="color: var(--text-muted);">合并 PRs</span>
+                                <span style="color: var(--accent-red);">100+ 个</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-window" style="transform: translateY(0);">
+                    <div class="terminal-header">
+                        <div class="terminal-dot dot-red"></div>
+                        <div class="terminal-dot dot-yellow"></div>
+                        <div class="terminal-dot dot-green"></div>
+                        <span style="margin-left: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">🦞 OpenClaw 代码库分析</span>
+                    </div>
+                    <div class="terminal-body" style="font-size: 0.8rem;">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 让 OpenClaw 探索项目结构和贡献方式</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-input">探索 J2Cache 项目，分析它的架构和新手友好的贡献方式</span>
+                        </div>
+                        
+                        <div class="terminal-line" style="margin-top: 1rem; color: var(--accent-cyan);">
+                            🦞 正在深度分析 J2Cache...
+                        </div>
+                        
+                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                            <div style="color: var(--accent-gold); font-weight: 600; margin-bottom: 0.5rem;">📁 项目结构</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">
+                                ├── core/<br>
+                                │   ├── src/main/java/ &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: var(--text-muted)">// 核心代码</span><br>
+                                │   ├── src/main/resources/ &nbsp;&nbsp;<span style="color: var(--text-muted)">// 配置文件</span><br>
+                                │   └── pom.xml &nbsp;&nbsp;&nbsp;<span style="color: var(--text-muted)">// Maven构建</span><br>
+                                ├── modules/ &nbsp;&nbsp;&nbsp;<span style="color: var(--text-muted)">// 扩展模块</span><br>
+                                └── README.md &nbsp;&nbsp;&nbsp;<span style="color: var(--text-muted)">// 使用文档</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0.5rem;">
+                            <div style="color: var(--accent-gold); font-weight: 600; margin-bottom: 0.5rem;">🎯 技术栈</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.15); color: var(--accent-cyan); border-radius: 1rem;">Java</span>
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.15); color: var(--accent-cyan); border-radius: 1rem;">Redis</span>
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.15); color: var(--accent-cyan); border-radius: 1rem;">Ehcache</span>
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.15); color: var(--accent-cyan); border-radius: 1rem;">Caffeine</span>
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(0,217,255,0.15); color: var(--accent-cyan); border-radius: 1rem;">Spring Boot</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: rgba(0,217,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(0,217,255,0.2);">
+                            <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 0.5rem;">✨ 新手友好度评估</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">
+                                ✅ 完善的 README 文档和示例<br>
+                                ✅ 模块化设计，易于理解<br>
+                                ✅ 活跃社区，维护者响应及时<br>
+                                ✅ 适合学习缓存架构最佳实践
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">19 / 25</div>
+        <div class="slide-content">
+            <div class="reveal" style="text-align: center; margin-bottom: var(--element-gap);">
+                <span class="role-badge" style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; padding: 0.5rem 1.5rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>🎓</span> 开源小白视角
+                </span>
+            </div>
+            
+            <h2 class="slide-heading reveal" style="font-size: clamp(1.5rem, 4vw, 2.5rem); text-align: center; margin-bottom: var(--content-gap);">
+                开始贡献：从<span class="highlight-cyan">简单任务</span>入手，Gitee 龙虾帮你自动定位
+            </h2>
+            
+            <div class="contribute-layout reveal" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1100px; width: 100%;">
+                <div style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); display: flex; flex-direction: column; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">📝</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">修复文档错误</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1;">
+                        修正 README 中的拼写错误、更新过时的安装说明、改进文档翻译
+                    </p>
+                    <div class="terminal-body" style="font-size: 0.75rem; padding: 0.6rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input" style="font-size: 0.7rem;">难度: ⭐</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.25rem; color: var(--text-muted); font-size: 0.7rem;">
+                            无需代码能力
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); display: flex; flex-direction: column; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">🐛</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">修复简单 Bug</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1;">
+                        解决 UI 显示问题、修复按钮点击无效、修正样式错位等小问题
+                    </p>
+                    <div class="terminal-body" style="font-size: 0.75rem; padding: 0.6rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input" style="font-size: 0.7rem;">难度: ⭐⭐</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.25rem; color: var(--text-muted); font-size: 0.7rem;">
+                            基础编程能力
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--bg-tertiary); display: flex; flex-direction: column; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.borderColor='var(--accent-cyan)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--bg-tertiary)'; this.style.transform='translateY(0)';">
+                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">✨</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">添加小功能</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1;">
+                        实现一键展开/折叠、添加表单验证、优化表格显示等实用功能
+                    </p>
+                    <div class="terminal-body" style="font-size: 0.75rem; padding: 0.6rem; border-radius: 0.5rem; background: var(--bg-tertiary);">
+                        <div class="terminal-line">
+                            <span class="terminal-input" style="font-size: 0.7rem;">难度: ⭐⭐⭐</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.25rem; color: var(--text-muted); font-size: 0.7rem;">
+                            熟悉项目结构
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terminal-window reveal" style="margin-top: 1.5rem; max-width: 900px; width: 100%;">
+                <div class="terminal-header">
+                    <div class="terminal-dot dot-red"></div>
+                    <div class="terminal-dot dot-yellow"></div>
+                    <div class="terminal-dot dot-green"></div>
+                    <span style="margin-left: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">🦞 小龙虾全程陪伴你的贡献之旅</span>
+                </div>
+                <div class="terminal-body" style="font-size: 0.8rem;">
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <div style="text-align: center; padding: 0.75rem;">
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
+                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">1. 发现任务</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">帮你找到适合新手的 Issue</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem;">
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💡</div>
+                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">2. 分析需求</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">解读 Issue 并提供解决思路</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem;">
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💻</div>
+                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">3. 实现代码</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">指导你编写正确的代码</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem;">
+                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🚀</div>
+                            <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">4. 提交 PR</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">帮你创建规范的 PR</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal" style="margin-top: 1rem; text-align: center;">
+                <p style="font-size: 0.85rem; color: var(--text-muted);">
+                    💬 <span style="color: var(--accent-cyan);">"我想找一个适合新手的任务，帮我看看 J2Cache 有什么我可以做的"</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">20 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">Gitee 小龙虾能做什么？</h2>
+            
+            <div class="feature-grid reveal">
+                <div class="feature-item">
+                    <div class="feature-emoji">📊</div>
+                    <h3 class="feature-title">每日汇报</h3>
+                    <p class="feature-desc">自动汇总工作摘要</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-emoji">🔍</div>
+                    <h3 class="feature-title">代码审查</h3>
+                    <p class="feature-desc">自动 Review PR 并评论</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-emoji">💻</div>
+                    <h3 class="feature-title">需求实现</h3>
+                    <p class="feature-desc">从 Issue 到 PR 完整闭环</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-emoji">🚀</div>
+                    <h3 class="feature-title">版本发布</h3>
+                    <p class="feature-desc">一键生成 Changelog 发版</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-emoji">📁</div>
+                    <h3 class="feature-title">仓库探索</h3>
+                    <p class="feature-desc">快速理解新项目结构</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-emoji">🔀</div>
+                    <h3 class="feature-title">Issue 管理</h3>
+                    <p class="feature-desc">批量整理、分类、关闭</p>
+                </div>
+            </div>
+
+            <div class="skills-section reveal">
+                <p class="section-label">🛠️ 编排属于你自己的 Skills — 30+ Tools 自由组合</p>
+                <div class="skills-list">
+                    <div class="skill-row"><span class="skill-emoji">⚡</span><span class="skill-text"><strong>自动化流水线</strong> — Issue → PR → Review → Merge → Release</span></div>
+                    <div class="skill-row"><span class="skill-emoji">🔎</span><span class="skill-text"><strong>智能代码搜索</strong> — 代码检索 + 仓库分析 + 依赖追踪</span></div>
+                    <div class="skill-row"><span class="skill-emoji">📋</span><span class="skill-text"><strong>项目管理套件</strong> — 里程碑 + 标签 + 协作者 + 通知</span></div>
+                    <div class="skill-row"><span class="skill-emoji">🤖</span><span class="skill-text"><strong>AI 辅助决策</strong> — PR 合并建议 + Issue 优先级 + 发版时机</span></div>
+                </div>
+                <div class="skills-tags">
+                    <span class="tag">Repo</span>
+                    <span class="tag">Issue</span>
+                    <span class="tag">PR</span>
+                    <span class="tag">Release</span>
+                    <span class="tag">Search</span>
+                    <span class="tag">Comment</span>
+                    <span class="tag">Merge</span>
+                    <span class="tag">Fork</span>
+                    <span class="tag">+22 more</span>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">21 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">多客户端支持</h2>
+            <p class="slide-text reveal mb-2">
+                Gitee Agent Skills 可在任何支持 Agent Skills 的应用中使用
+            </p>
+            
+            <div class="feature-grid reveal">
+                <div class="feature-item">
+                    <img src="assets/icon-openclaw.svg" alt="OpenClaw" class="client-icon">
+                    <h3 class="feature-title">OpenClaw</h3>
+                    <p class="feature-desc">~/.openclaw/skills/</p>
+                </div>
+                <div class="feature-item">
+                    <img src="assets/icon-claude.svg" alt="Claude Code" class="client-icon">
+                    <h3 class="feature-title">Claude Code</h3>
+                    <p class="feature-desc">~/.claude/skills/</p>
+                </div>
+                <div class="feature-item">
+                    <img src="assets/icon-cursor.svg" alt="Cursor" class="client-icon">
+                    <h3 class="feature-title">Cursor</h3>
+                    <p class="feature-desc">~/.cursor/skills/</p>
+                </div>
+                <div class="feature-item">
+                    <img src="assets/icon-gemini.svg" alt="Gemini CLI" class="client-icon">
+                    <h3 class="feature-title">Gemini CLI</h3>
+                    <p class="feature-desc">~/.gemini/skills/</p>
+                </div>
+                <div class="feature-item">
+                    <img src="assets/icon-opencode.svg" alt="OpenCode" class="client-icon" style="width: 180px; height: 64px;">
+                    <h3 class="feature-title">OpenCode</h3>
+                    <p class="feature-desc">~/.opencode/skills/</p>
+                </div>
+                <div class="feature-item">
+                    <img src="assets/icon-codex.svg" alt="OpenAI Codex" class="client-icon">
+                    <h3 class="feature-title">OpenAI Codex</h3>
+                    <p class="feature-desc">~/.codex/skills/</p>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">22 / 25</div>
+        
+        <!-- Background Glow Effects -->
+        <div style="position: absolute; top: 10%; left: 5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(139, 148, 158, 0.15) 0%, transparent 70%); border-radius: 50%; filter: blur(60px); pointer-events: none;"></div>
+        <div style="position: absolute; bottom: 10%; right: 5%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 107, 107, 0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(80px); pointer-events: none;"></div>
+        
+        <div class="slide-content">
+            <h2 class="slide-heading reveal" style="margin-bottom: 0.5rem;">开发模式正在改变</h2>
+            <p class="slide-text reveal" style="color: var(--text-muted); font-size: clamp(0.8rem, 1.5vw, 1rem); margin-bottom: var(--content-gap);">
+                从手工操作到 AI 协作的进化之路
+            </p>
+            
+            <!-- Evolution Timeline -->
+            <div class="reveal" style="position: relative; max-width: 1000px; width: 100%;">
+                <!-- Timeline Line -->
+                <div style="position: absolute; top: 45%; left: 10%; right: 10%; height: 4px; background: linear-gradient(90deg, var(--text-muted) 0%, var(--accent-cyan) 50%, var(--accent-red) 100%); border-radius: 2px; transform: translateY(-50%);"></div>
+                
+                <!-- Timeline Nodes -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; gap: 1rem;">
+                    
+                    <!-- PAST -->
+                    <div style="flex: 1; text-align: center; position: relative; padding-top: 10px; display: flex; flex-direction: column;">
+                        <div style="
+                            width: 50px; 
+                            height: 50px; 
+                            margin: 0 auto 1rem; 
+                            background: var(--bg-secondary); 
+                            border: 2px solid var(--text-muted); 
+                            border-radius: 50%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            font-size: 1.25rem;
+                            position: relative;
+                            z-index: 10;
+                            opacity: 0.6;">
+                            👨‍💻
+                        </div>
+                        <div style="
+                            background: var(--bg-secondary); 
+                            border: 1px solid var(--text-muted); 
+                            border-radius: 12px; 
+                            padding: 1rem; 
+                            opacity: 0.7;">
+                            <h3 style="margin: 0 0 0.5rem; color: var(--text-secondary); font-size: clamp(0.9rem, 1.8vw, 1.1rem);">传统模式</h3>
+                            <div style="font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-muted); line-height: 1.6;">
+                                <div style="display: flex; align-items: center; justify-content: center; height: 1.6em;">✍️ 手写代码</div>
+                                <div style="display: flex; align-items: center; justify-content: center; height: 1.6em;">🔍 人工 Review</div>
+                                <div style="display: flex; align-items: center; justify-content: center; height: 1.6em;">📝 手动提交</div>
+                                <div style="display: flex; align-items: center; justify-content: center; height: 1.6em;">📊 人工整理</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem; font-size: clamp(0.65rem, 1vw, 0.8rem); color: var(--text-muted);">
+                            100% 人工操作
+                        </div>
+                    </div>
+                    
+                     <!-- TRANSITION -->
+                    <div style="flex: 0.6; display: flex; flex-direction: column; align-items: center; padding-top: 10px;">
+                        <div style="
+                            width: 50px; 
+                            height: 50px; 
+                            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-red)); 
+                            border-radius: 50%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            font-size: 1.25rem;
+                            z-index: 10;
+                            box-shadow: 0 0 30px rgba(0, 217, 255, 0.4);
+                            animation: pulse 2s infinite;">
+                            ⚡
+                        </div>
+                        <div style="margin-top: 1rem; font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--accent-cyan); font-weight: 600;">
+                            变革
+                        </div>
+                    </div>
+                    
+                    <!-- NOW -->
+                    <div style="flex: 1; text-align: center; position: relative; padding-top: 10px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; margin: 0 auto 1rem;">
+                            <div style="width: 32px; height: 32px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <img src="assets/logo_gitee.svg" alt="Gitee" style="width: 24px; height: 24px;">
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">×</span>
+                            <div style="
+                                width: 46px; 
+                                height: 46px; 
+                                background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary)); 
+                                border: 2px solid var(--accent-red); 
+                                border-radius: 50%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                box-shadow: 0 0 30px var(--glow-red);
+                                animation: glow-pulse 2s ease-in-out infinite;">
+                                <img src="assets/icon-openclaw.svg" alt="OpenClaw" style="width: 28px; height: 28px;">
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">×</span>
+                            <div style="width: 32px; height: 32px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <img src="assets/logo_moark.svg" alt="Moark" style="width: 24px; height: 24px;">
+                            </div>
+                        </div>
+                        <div style="
+                            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 140, 66, 0.05)); 
+                            border: 2px solid var(--accent-red); 
+                            border-radius: 12px; 
+                            padding: 1rem;
+                            box-shadow: 0 10px 40px rgba(255, 107, 107, 0.15);">
+                            <h3 style="margin: 0 0 0.5rem; color: var(--accent-red); font-size: clamp(0.9rem, 1.8vw, 1.1rem);">AI 协作模式</h3>
+                            <div style="font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-secondary); line-height: 1.6;">
+                                <div style="color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; height: 1.6em;">🤖 AI 写代码</div>
+                                <div style="color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; height: 1.6em;">🤖 AI Review</div>
+                                <div style="color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; height: 1.6em;">🤖 AI 提交</div>
+                                <div style="color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; height: 1.6em;">🤖 AI 整理</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem; font-size: clamp(0.65rem, 1vw, 0.8rem); color: var(--accent-red); font-weight: 600;">
+                            人专注创造，AI 负责执行
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Value Proposition -->
+            <div class="reveal" style="display: flex; justify-content: center; gap: clamp(1.5rem, 4vw, 3rem); margin-top: var(--content-gap); max-width: 900px;">
+                <div style="flex: 1; text-align: center; padding: 1.5rem; background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), transparent); border: 1px solid rgba(0, 217, 255, 0.3); border-radius: 16px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                    <div style="font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 600; color: var(--accent-cyan); margin-bottom: 0.3rem;">聚焦核心</div>
+                    <div style="font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-secondary);">开发者专注于架构设计与关键决策</div>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), transparent); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 16px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                    <div style="font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 600; color: var(--accent-red); margin-bottom: 0.3rem;">持续迭代</div>
+                    <div style="font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-secondary);">重复性工作交给 Agent 自动完成</div>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 1.5rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 16px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚀</div>
+                    <div style="font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 600; color: var(--accent-gold); margin-bottom: 0.3rem;">释放潜能</div>
+                    <div style="font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-secondary);">从代码工人升级为系统架构师</div>
+                </div>
+            </div>
+            
+            <style>
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 217, 255, 0.4); }
+                    50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(0, 217, 255, 0.6); }
+                }
+            </style>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">23 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">1 人 + N 虾 = ?</h2>
+            <p class="slide-text reveal mb-2">
+                一个开发者加 N 只小龙虾，可能就是 AI 协作开发的起点
+            </p>
+            
+            <div class="concept-grid reveal">
+                <div class="concept-card">
+                    <div class="concept-icon">👨‍💻</div>
+                    <h3 class="concept-title">专注核心</h3>
+                    <p class="concept-desc">开发者专注于架构设计和关键逻辑</p>
+                </div>
+                <div class="concept-card">
+                    <div class="concept-icon">🦞</div>
+                    <h3 class="concept-title">Agent 军团</h3>
+                    <p class="concept-desc">N 只小龙虾处理 Review、Issue、发版、日报</p>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); font-size: clamp(1.5rem, 4vw, 3rem); font-family: var(--font-display); font-weight: 700;">
+                <span style="color: var(--accent-cyan);">1人</span> 
+                <span style="color: var(--text-muted);">+</span> 
+                <span style="color: var(--accent-red);">N虾</span> 
+                <span style="color: var(--text-muted);">=</span> 
+                <span style="color: var(--accent-gold);">AI协作开发</span>
+            </div>
+        </div>
+    </section>
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">24 / 25</div>
+        <div class="slide-content">
+            <h2 class="slide-heading reveal">完全开源 · 立即养虾</h2>
+            <p class="slide-text reveal mb-2">
+                Gitee Agent Skills 已开源，5 分钟配置即可拥有你的专属小龙虾
+            </p>
+            
+            <div class="reveal" style="
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: var(--content-gap);
+                max-width: min(95vw, 1100px);
+                width: 100%;
+                align-items: start;
+            ">
+                <!-- Left: Open Source Info -->
+                <div style="text-align: left;">
+                    <div class="terminal-window" style="margin-bottom: var(--content-gap);">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                            <span class="terminal-title">开源地址</span>
+                        </div>
+                        <div class="terminal-body" style="text-align: center;">
+                            <a href="https://gitee.com/oschina/gitee-agent-skills" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: none; font-size: clamp(0.85rem, 1.5vw, 1rem);">https://gitee.com/oschina/gitee-agent-skills</a>
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        background: var(--bg-secondary);
+                        border: 1px solid var(--bg-tertiary);
+                        border-radius: 12px;
+                        padding: var(--content-gap);
+                    ">
+                        <p style="font-size: clamp(0.8rem, 1.4vw, 0.95rem); color: var(--text-secondary); margin: 0; line-height: 1.8;">
+                            ✓ 可自行编排更多 Skills<br>
+                            ✓ 基于 Gitee MCP Server 扩展<br>
+                            ✓ 社区驱动，持续更新
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Right: Installation Guide -->
+                <div style="text-align: left;">
+                    <div class="terminal-window">
+                        <div class="install-tabs" style="padding: 0.4rem;">
+                            <button class="install-tab active" onclick="showTab('start-agent', this)" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">
+                                <span>🤖</span> AI Agent
+                            </button>
+                            <button class="install-tab" onclick="showTab('start-human', this)" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">
+                                <span>👤</span> 手动安装
+                            </button>
+                        </div>
+
+                        <div id="start-agent" class="install-content active" style="height: 260px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 1rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('start-agent-text', this)" title="复制内容" style="top: 8px; right: 8px;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="start-agent-text">
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-comment" style="font-size: 0.75rem;"># 步骤1：配置 Gitee MCP Server</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">"帮我配置 gitee mcp server，</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;"> 采用 remote 方式连接，</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;"> Access Token 为：xxxxx，仓库地址：https://gitee.com/oschina/mcp-gitee"</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.5rem 0 0.3rem 0;">
+                                        <span class="terminal-comment" style="font-size: 0.75rem;"># 步骤2：安装 Gitee Agent Skills</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">"帮我安装 Gitee Agent Skills，</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.3rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;"> 仓库：https://gitee.com/oschina/gitee-agent-skills"</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="start-human" class="install-content" style="height: 260px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 1rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('start-human-text', this)" title="复制内容" style="top: 8px; right: 8px;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="start-human-text">
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-comment" style="font-size: 0.7rem;"># 步骤1：配置 Gitee MCP Server</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.7rem;">mcporter config add gitee --url https://api.gitee.com/mcp --header Authorization="Bearer &lt;token&gt;"</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.5rem 0 0.25rem 0;">
+                                        <span class="terminal-comment" style="font-size: 0.7rem;"># 步骤2：克隆 Skills 仓库</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.7rem;">git clone https://gitee.com/oschina/gitee-agent-skills</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.7rem;">mkdir -p ~/.openclaw/skills</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.7rem;">cp -r gitee-agent-skills/skills/* ~/.openclaw/skills/</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.5rem 0 0.25rem 0;">
+                                        <span class="terminal-comment" style="font-size: 0.7rem;"># 步骤3：重启生效</span>
+                                    </div>
+                                    <div class="terminal-line" style="margin: 0.25rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.7rem;">openclaw gateway restart</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p style="margin-top: var(--element-gap); color: var(--accent-gold); font-size: clamp(0.8rem, 1.4vw, 0.95rem); text-align: center;">
+                        🦞 至此，你的 Gitee 小龙虾已上线，开始指挥它干活吧！
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+<section class="slide title-slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">25 / 25</div>
+        <div class="bg-glow bg-glow-red"></div>
+        <div class="bg-glow bg-glow-cyan"></div>
+        <div class="slide-content">
+            <div class="reveal" style="margin-bottom: var(--element-gap); display: flex; justify-content: center; align-items: center; gap: clamp(1rem, 3vw, 2rem);">
+                <img src="assets/icon-openclaw.svg" alt="OpenClaw" style="width: clamp(60px, 12vw, 100px); height: auto; filter: drop-shadow(0 0 20px rgba(255, 77, 77, 0.5)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <span style="font-size: clamp(1.5rem, 4vw, 2.5rem); color: var(--text-muted);">×</span>
+                <img src="assets/icon-gitee.svg" alt="Gitee" style="width: clamp(80px, 15vw, 140px); height: auto; filter: drop-shadow(0 0 20px rgba(199, 11, 11, 0.5)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <span style="font-size: clamp(1.5rem, 4vw, 2.5rem); color: var(--text-muted);">×</span>
+                <img src="assets/icon-moark.svg" alt="Moark" style="width: clamp(100px, 18vw, 160px); height: auto; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            </div>
+            <h2 class="slide-title reveal">感谢聆听</h2>
+            <p class="slide-subtitle reveal">打造一只懂 Gitee 的小龙虾</p>
+            
+            <div class="reveal" style="margin-top: var(--content-gap);">
+                <div class="terminal-window" style="max-width: 500px; margin: 0 auto;">
+                    <div class="terminal-body" style="text-align: center; padding: 1rem;">
+                        <a href="https://gitee.com/oschina/gitee-agent-skills" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: none;">https://gitee.com/oschina/gitee-agent-skills</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="event-info reveal">
+                <div>OpenClaw X Gitee Agent Skills</div>
+                <div style="margin-top: 0.5rem;">Q&A · 欢迎交流</div>
+            </div>
+        </div>
+    </section>
+    </div>
+
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Full screen preview">
+    </div>
+
+    <!-- Scripts -->
+    <script>
+// ============================================
+// SLIDE PRESENTATION CONTROLLER
+// ============================================
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isScrolling = false;
+        this.init();
+    }
+
+    init() {
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+        this.updateProgress();
+    }
+
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                        this.updateNavDots();
+                        this.updateProgress();
+                    }
+                });
+            },
+            { threshold: 0.5 }
+        );
+
+        this.slides.forEach((slide) => observer.observe(slide));
+    }
+
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                case 'PageDown':
+                case ' ':
+                    e.preventDefault();
+                    this.nextSlide();
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    this.prevSlide();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    this.goToSlide(this.slides.length - 1);
+                    break;
+            }
+        });
+    }
+
+    setupTouchNav() {
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            this.handleSwipe(touchStartY, touchEndY);
+        }, { passive: true });
+    }
+
+    handleSwipe(startY, endY) {
+        const threshold = 50;
+        const diff = startY - endY;
+
+        if (Math.abs(diff) > threshold) {
+            if (diff > 0) {
+                this.nextSlide();
+            } else {
+                this.prevSlide();
+            }
+        }
+    }
+
+    setupProgressBar() {
+        const progressBar = document.getElementById('progressBar');
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    }
+
+    setupNavDots() {
+        const navDots = document.getElementById('navDots');
+        if (!navDots) return;
+
+        navDots.innerHTML = '';
+        this.slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'nav-dot';
+            dot.addEventListener('click', () => this.goToSlide(index));
+            navDots.appendChild(dot);
+        });
+
+        this.updateNavDots();
+    }
+
+    updateNavDots() {
+        const dots = document.querySelectorAll('.nav-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === this.currentSlide);
+        });
+    }
+
+    updateProgress() {
+        const progressBar = document.getElementById('progressBar');
+        if (progressBar) {
+            const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+    }
+
+    nextSlide() {
+        if (this.currentSlide < this.slides.length - 1) {
+            this.goToSlide(this.currentSlide + 1);
+        }
+    }
+
+    prevSlide() {
+        if (this.currentSlide > 0) {
+            this.goToSlide(this.currentSlide - 1);
+        }
+    }
+
+    goToSlide(index) {
+        if (index >= 0 && index < this.slides.length) {
+            this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+// ============================================
+// INLINE EDITOR
+// ============================================
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.editableElements = [];
+        this.init();
+    }
+
+    init() {
+        this.createEditUI();
+        this.setupEventListeners();
+        this.loadSavedContent();
+    }
+
+    createEditUI() {
+        // Create hotzone
+        const hotzone = document.createElement('div');
+        hotzone.className = 'edit-hotzone';
+        document.body.appendChild(hotzone);
+
+        // Create toggle button
+        const toggle = document.createElement('button');
+        toggle.className = 'edit-toggle';
+        toggle.id = 'editToggle';
+        toggle.innerHTML = '✏️';
+        toggle.title = 'Edit mode (E)';
+        document.body.appendChild(toggle);
+
+        // Create save indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'save-indicator';
+        indicator.id = 'saveIndicator';
+        indicator.textContent = '已自动保存';
+        document.body.appendChild(indicator);
+
+        this.hotzone = hotzone;
+        this.toggle = toggle;
+        this.indicator = indicator;
+    }
+
+    setupEventListeners() {
+        let hideTimeout = null;
+
+        // Hotzone hover with 400ms grace period
+        this.hotzone.addEventListener('mouseenter', () => {
+            clearTimeout(hideTimeout);
+            this.toggle.classList.add('show');
+        });
+
+        this.hotzone.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => {
+                if (!this.isActive) this.toggle.classList.remove('show');
+            }, 400);
+        });
+
+        this.toggle.addEventListener('mouseenter', () => {
+            clearTimeout(hideTimeout);
+        });
+
+        this.toggle.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => {
+                if (!this.isActive) this.toggle.classList.remove('show');
+            }, 400);
+        });
+
+        // Click handlers
+        this.hotzone.addEventListener('click', () => this.toggleEditMode());
+        this.toggle.addEventListener('click', () => this.toggleEditMode());
+
+        // Keyboard shortcut for edit mode toggle
+        document.addEventListener('keydown', (e) => {
+            const isEditing = e.target.getAttribute('contenteditable') === 'true';
+            const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+            if ((e.key === 'e' || e.key === 'E') && !isEditing && !isInput) {
+                e.preventDefault();
+                this.toggleEditMode();
+            }
+        });
+
+        // Auto-save on input
+        document.addEventListener('input', (e) => {
+            if (e.target.getAttribute('contenteditable') === 'true') {
+                this.autoSave();
+            }
+        });
+
+        // Ctrl+S to save and export
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.exportFile();
+            }
+        });
+    }
+
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        this.toggle.classList.toggle('active', this.isActive);
+
+        if (this.isActive) {
+            this.enableEditing();
+        } else {
+            this.disableEditing();
+        }
+    }
+
+    enableEditing() {
+        // Find all editable text elements
+        const selectors = [
+            '.slide-title',
+            '.slide-subtitle',
+            '.slide-heading',
+            '.slide-text',
+            '.concept-title',
+            '.concept-desc',
+            '.feature-title',
+            '.feature-desc',
+            '.stat-label',
+            '.terminal-input',
+            '.terminal-output',
+            '.event-info div'
+        ];
+
+        this.editableElements = [];
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach((el, index) => {
+                el.setAttribute('contenteditable', 'true');
+                el.setAttribute('data-editable-id', `${selector}-${index}`);
+                this.editableElements.push(el);
+            });
+        });
+
+        this.showIndicator('编辑模式已开启，点击文字即可编辑');
+    }
+
+    disableEditing() {
+        this.editableElements.forEach(el => {
+            el.removeAttribute('contenteditable');
+            el.removeAttribute('data-editable-id');
+        });
+        this.editableElements = [];
+        this.showIndicator('编辑模式已关闭');
+    }
+
+    autoSave() {
+        const content = {};
+        this.editableElements.forEach(el => {
+            const id = el.getAttribute('data-editable-id');
+            if (id) {
+                content[id] = el.innerHTML;
+            }
+        });
+        localStorage.setItem('openclaw-ppt-content', JSON.stringify(content));
+        this.showIndicator('已自动保存');
+    }
+
+    loadSavedContent() {
+        const saved = localStorage.getItem('openclaw-ppt-content');
+        if (!saved) return;
+
+        try {
+            const content = JSON.parse(saved);
+            Object.keys(content).forEach(id => {
+                const el = document.querySelector(`[data-editable-id="${id}"]`);
+                if (el) {
+                    el.innerHTML = content[id];
+                }
+            });
+        } catch (e) {
+            console.error('Failed to load saved content:', e);
+        }
+    }
+
+    showIndicator(message) {
+        this.indicator.textContent = message;
+        this.indicator.classList.add('show');
+        setTimeout(() => {
+            this.indicator.classList.remove('show');
+        }, 2000);
+    }
+
+    exportFile() {
+        const html = document.documentElement.outerHTML;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'openclaw-gitee-ppt-edited.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showIndicator('文件已导出');
+    }
+}
+
+// ============================================
+// LIGHTBOX FUNCTIONALITY
+// ============================================
+function openLightbox(src) {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    lightboxImg.src = src;
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Close lightbox with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    }
+});
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+function showTab(tabId, btn) {
+    // Find the closest tab container (terminal-window) to isolate this tab group
+    const container = btn.closest('.terminal-window');
+    
+    // Hide all content and tabs within this specific container
+    container.querySelectorAll('.install-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    container.querySelectorAll('.install-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show selected content
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+// ============================================
+// COPY TO CLIPBOARD
+// ============================================
+async function copyToClipboard(elementId, btn) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    // Get text content, removing HTML tags
+    let text = element.innerText || element.textContent;
+
+    // Try modern clipboard API first (HTTPS only)
+    if (navigator.clipboard && window.isSecureContext) {
+        try {
+            await navigator.clipboard.writeText(text);
+            showCopySuccess(btn);
+            return;
+        } catch (err) {
+            console.log('Clipboard API failed, falling back:', err);
+        }
+    }
+
+    // Fallback for HTTP environments
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        if (successful) {
+            showCopySuccess(btn);
+        } else {
+            throw new Error('execCommand failed');
+        }
+    } catch (err) {
+        console.error('复制失败:', err);
+        showCopyError(btn);
+    }
+}
+
+function showCopySuccess(btn) {
+    const originalHTML = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = '<span>✓</span> 已复制';
+
+    setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = originalHTML;
+    }, 2000);
+}
+
+function showCopyError(btn) {
+    btn.innerHTML = '<span>❌</span> 失败';
+    setTimeout(() => {
+        btn.innerHTML = '<span>📋</span> 复制';
+    }, 2000);
+}
+
+// ============================================
+// INITIALIZE
+// ============================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new SlidePresentation();
+        new InlineEditor();
+    });
+} else {
+    new SlidePresentation();
+    new InlineEditor();
+}
+
+</script>
+        <script>
+        // Initialize presentation
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.presentation = new SlidePresentation();
+                window.editor = new InlineEditor();
+            });
+        } else {
+            window.presentation = new SlidePresentation();
+            window.editor = new InlineEditor();
+        }
+    </script>
+</body>
+</html>
