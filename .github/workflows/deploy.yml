@@ -30,9 +30,7 @@ jobs:
           node-version: '20'
 
       - name: Build
-        run: |
-          npm install
-          node build.js
+        run: node build.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
