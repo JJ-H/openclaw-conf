@@ -6,3 +6,6 @@ node_modules/
 
 # Ignore generated PPT file
 openclaw-gitee-ppt.html
+
+# Local deploy script
+publish.sh
