@@ -1,0 +1,81 @@
+<section class="slide">
+        <div class="bg-grid"></div>
+<div class="slide-number">13 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">🌅 9:00 场景 1: 每日晨报</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">今天有什么待处理的？</h2>
+                    <p class="slide-text">
+                        只需一句话，小龙虾帮你汇总：<br><br>
+                        • 未读通知<br>
+                        • 待 Review 的 PR<br>
+                        • 待处理的 Issue<br>
+                        • 今日工作优先级
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        <span class="highlight">关键词：私人 AI 助理</span>
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap);">
+                        还可以设置定时触发，比如：<br>
+                        <span style="color: var(--accent-cyan);">每个工作日的早上 10:00 推送每日待办</span>
+                    </p>
+                </div>
+                
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">daily-digest</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"今天有什么需要处理的 PR？"</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 小龙虾自动执行 daily-digest...</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">📊 今日工作摘要</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 3 个 PR 待 Review</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 5 条未读通知</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• 2 个 Issue 待处理</span>
+                        </div>
+                        <div class="terminal-line terminal-success">
+                            ✓ 已生成完整日报
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 600px;
+                    width: 90%;
+                " onclick="openLightbox('assets/daily-digest-cron.png')">
+                    <img src="assets/daily-digest-cron.png" alt="定时推送每日待办" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>

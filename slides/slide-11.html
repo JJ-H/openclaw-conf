@@ -1,0 +1,82 @@
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">11 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">✅ 步骤 3/3</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">验证 Skills 安装</h2>
+                    <p class="slide-text">
+                        安装完成后，确认 Skills 是否正常加载
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.85rem; color: var(--text-muted);">
+                        <span class="highlight">询问 AI：</span>"你有哪些 gitee 的 skills"
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.8rem; color: var(--text-secondary);">
+                        ✓ 如果正常识别，会列出所有 Gitee Skills
+                    </p>
+                </div>
+
+                <div class="terminal-window reveal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                        <span class="terminal-title">verification</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal-line">
+                            <span class="terminal-comment"># 你说：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-input">"你有哪些 gitee 的 skills"</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-comment"># AI 回复示例：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">Gitee 相关的 Skills（需 Gitee MCP Server 配置）：</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• daily-digest - 每日摘要、待办 PR/Issue</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• create-issue - 创建 Issue、提 Bug、需求</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• close-issue-flow - 关闭 Issue</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• create-pr - 创建 Pull Request</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">• review-pr - 审查 PR</span>
+                        </div>
+                        <div class="terminal-line" style="margin-top: 0.5rem;">
+                            <span class="terminal-success">......</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 600px;
+                    width: 90%;
+                " onclick="openLightbox('assets/check-skills.png')">
+                    <img src="assets/check-skills.png" alt="Gitee Skills 验证结果" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>

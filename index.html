@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打造一只懂 Gitee 的小龙虾 🦞 - OpenClaw X Gitee Agent Skills</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&f[]=satoshi@300,400,500,700,900&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Slides Container - will be populated dynamically -->
+    <div id="slidesContainer"></div>
+
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Full screen preview">
+    </div>
+
+    <!-- Scripts -->
+    <script src="shared/scripts.js"></script>
+    <script>
+        // Dynamically load all slides
+        async function loadSlides() {
+            const container = document.getElementById('slidesContainer');
+            const totalSlides = 25;
+            
+            for (let i = 1; i <= totalSlides; i++) {
+                try {
+                    const response = await fetch(`slides/slide-${i.toString().padStart(2, '0')}.html`);
+                    const html = await response.text();
+                    container.insertAdjacentHTML('beforeend', html);
+                } catch (error) {
+                    console.error(`Failed to load slide ${i}:`, error);
+                }
+            }
+            
+            // Re-initialize presentation after slides are loaded
+            setTimeout(() => {
+                window.presentation = new SlidePresentation();
+                window.editor = new InlineEditor();
+            }, 100);
+        }
+
+        // Load slides when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSlides);
+        } else {
+            loadSlides();
+        }
+    </script>
+</body>
+</html>

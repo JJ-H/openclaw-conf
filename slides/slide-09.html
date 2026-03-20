@@ -1,0 +1,144 @@
+<section class="slide">
+        <div class="bg-grid"></div>
+        <div class="slide-number">09 / 25</div>
+        <div class="slide-content">
+            <div class="demo-layout">
+                <div class="demo-content reveal">
+                    <div class="demo-time">⏱️ 步骤 1/2</div>
+                    <h2 class="slide-heading" style="font-size: clamp(1.25rem, 3vw, 2rem);">配置 Gitee MCP Server</h2>
+                    <p class="slide-text">
+                        选择适合你的配置方式
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.85rem; color: var(--text-muted);">
+                        <span class="highlight">推荐：让 AI Agent 自动配置</span>
+                    </p>
+                    <p class="slide-text" style="margin-top: var(--element-gap); font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
+                        <span style="color: var(--accent-cyan);">💡 前置要求：</span>mcporter skill
+                    </p>
+                    
+                    <!-- mcporter 下载指令 -->
+                    <div class="terminal-window" style="margin-top: var(--element-gap); max-width: 380px;">
+                        <div class="install-tabs" style="padding: 0.3rem;">
+                            <button class="install-tab active" onclick="showTab('mcporter-npm', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                npm
+                            </button>
+                            <button class="install-tab" onclick="showTab('mcporter-pnpm', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                pnpm
+                            </button>
+                            <button class="install-tab" onclick="showTab('mcporter-bun', this)" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+                                bun
+                            </button>
+                        </div>
+                        
+                        <div id="mcporter-npm" class="install-content active" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-npm-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-npm-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">npx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="mcporter-pnpm" class="install-content" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-pnpm-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-pnpm-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">pnpm dlx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="mcporter-bun" class="install-content" style="height: 45px;">
+                            <div class="terminal-body" style="text-align: left; position: relative; padding: 0.6rem;">
+                                <button class="copy-btn" onclick="copyToClipboard('mcporter-bun-text', this)" title="复制内容" style="top: 4px; right: 4px; padding: 0.15rem 0.3rem; font-size: 0.65rem;">
+                                    <span>📋</span>
+                                </button>
+                                <div id="mcporter-bun-text">
+                                    <div class="terminal-line" style="margin: 0.1rem 0;">
+                                        <span class="terminal-input" style="font-size: 0.75rem;">bunx clawhub@latest install mcporter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-window reveal">
+                    <div class="install-tabs">
+                        <button class="install-tab active" onclick="showTab('mcp-agent', this)">
+                            <span>🤖</span> I'm An Agent
+                        </button>
+                        <button class="install-tab" onclick="showTab('mcp-human', this)">
+                            <span>👤</span> I'm a Human
+                        </button>
+                    </div>
+                    
+                    <div id="mcp-agent" class="install-content active">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem);">
+                            <button class="copy-btn" onclick="copyToClipboard('mcp-agent-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="mcp-agent-text">
+                                <div class="terminal-line">
+                                    <span class="terminal-input">帮我配置 Gitee MCP Server，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">采用 remote 方式连接，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">Access Token 为：xxxxx，</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">文档说明：https://gitee.com/oschina/mcp-gitee</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mcp-human" class="install-content">
+                        <div class="terminal-body" style="font-size: clamp(0.75rem, 1.3vw, 0.9rem);">
+                            <button class="copy-btn" onclick="copyToClipboard('mcp-human-text', this)" title="复制内容">
+                                <span>📋</span> 复制
+                            </button>
+                            <div id="mcp-human-text">
+                                <div class="terminal-line" style="margin-top: 0.5rem;">
+                                    <span class="terminal-comment"># OpenClaw 推荐使用 mcporter 调用 mcp</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="terminal-input">mcporter config add gitee --url https://api.gitee.com/mcp --header Authorization="Bearer &lt;your personal access token&gt;"</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="img-preview-container" style="
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--bg-tertiary);
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 800px;
+                    width: 90%;
+                " onclick="openLightbox('assets/config-gitee-mcp.png')">
+                    <img src="assets/config-gitee-mcp.png" alt="Gitee MCP 配置成功" style="
+                        width: 100%;
+                        height: auto;
+                        border-radius: 8px;
+                        display: block;
+                        pointer-events: none;
+                    ">
+                </div>
+            </div>
+        </div>
+    </section>
